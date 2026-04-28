@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,6 +21,7 @@ export default function BabyScreen() {
   const [babyAge, setBabyAge] = useState('');
   const [reminders, setReminders] = useState({});
   const [interstitialCount, setInterstitialCount] = useState(0);
+  const [babyPhoto, setBabyPhoto] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingVaccine, setEditingVaccine] = useState(null);
   const [editDaysBefore, setEditDaysBefore] = useState(3);
@@ -53,6 +54,7 @@ export default function BabyScreen() {
       setReminders(savedReminders);
     }
     setBabyAge(age);
+    setBabyPhoto(profileData?.babyPhoto || null);
     setVaccineList(getVaccinesByAge(profileData?.birthDate, completed));
   }
 
@@ -95,7 +97,8 @@ export default function BabyScreen() {
       }
 
       // 保留用戶自定義的提前天數和時間，否則用全局默認值
-      const itemDaysBefore = existing?.daysBefore ?? defaultDaysBefore;
+      // v001（出生疫苗）應在出生當天提醒，不提前
+      const itemDaysBefore = vaccine.id === 'v001' ? 0 : (existing?.daysBefore ?? defaultDaysBefore);
       const itemHour = existing?.hour ?? defaultHour;
 
       const remindDate = new Date(vaccine.dueDate);
@@ -212,7 +215,11 @@ export default function BabyScreen() {
         {profile?.mode === 'baby' && profile?.birthDate ? (
           <>
             <View style={styles.ageCard}>
-              <Ionicons name="happy-outline" size={48} color="#FFF" />
+              {babyPhoto ? (
+                <Image source={{ uri: babyPhoto }} style={styles.babyAvatar} />
+              ) : (
+                <Ionicons name="happy-outline" size={48} color="#FFF" />
+              )}
               <Text style={styles.ageLabel}>寶寶年齡</Text>
               <Text style={styles.ageText}>{babyAge}</Text>
               {profile?.babyName && <Text style={styles.babyName}>{profile.babyName}</Text>}
@@ -350,6 +357,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  babyAvatar: { width: 128, height: 128, borderRadius: 64, borderWidth: 3, borderColor: 'rgba(255,255,255,0.5)' },
   ageLabel: { fontSize: 16, color: '#FFF', opacity: 0.9, marginTop: 8 },
   ageText: { fontSize: 28, fontWeight: 'bold', color: '#FFF', marginTop: 4 },
   babyName: { fontSize: 16, color: '#FFF', opacity: 0.9, marginTop: 4 },
@@ -385,9 +393,6 @@ const styles = StyleSheet.create({
   diseaseText: { fontSize: 13, color: '#4CAF50', marginLeft: 6, flex: 1 },
   vaccineNotes: { fontSize: 13, color: '#888', marginTop: 6, fontStyle: 'italic' },
   reminderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
@@ -395,7 +400,7 @@ const styles = StyleSheet.create({
   },
   reminderBtn: { flexDirection: 'row', alignItems: 'center' },
   reminderBtnText: { fontSize: 13, color: '#FF6B8A', marginLeft: 4 },
-  reminderInfo: { fontSize: 12, color: '#888' },
+  reminderInfo: { fontSize: 12, color: '#888', marginTop: 6 },
   emptyCard: {
     backgroundColor: '#FFF',
     borderRadius: 16,

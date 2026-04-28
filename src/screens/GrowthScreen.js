@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput, Platform, Image,
+  Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,6 +19,7 @@ export default function GrowthScreen() {
   const [profile, setProfile] = useState(null);
   const [showChart, setShowChart] = useState(false);
   const [chartType, setChartType] = useState('weight');
+  const [babyPhoto, setBabyPhoto] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
@@ -38,6 +40,7 @@ export default function GrowthScreen() {
     const sorted = data.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
     setRecords(sorted);
     setProfile(profileData);
+    setBabyPhoto(profileData?.babyPhoto || null);
   }
 
   async function handleAdd() {
@@ -148,6 +151,11 @@ export default function GrowthScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        {babyPhoto && (
+          <View style={styles.photoRow}>
+            <Image source={{ uri: babyPhoto }} style={styles.babyAvatar} />
+          </View>
+        )}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
             <Ionicons name="add-circle-outline" size={20} color="#FFF" />
@@ -263,61 +271,65 @@ export default function GrowthScreen() {
 
       <AdBanner />
 
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>添加成長記錄</Text>
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={styles.modalContent}>
+              <ScrollView bounces={false} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <Text style={styles.modalTitle}>添加成長記錄</Text>
 
-            <Text style={styles.label}>日期</Text>
-            <TextInput
-              style={styles.input}
-              value={recordDate}
-              onChangeText={setRecordDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#BBB"
-            />
+                <Text style={styles.label}>日期</Text>
+                <TextInput
+                  style={styles.input}
+                  value={recordDate}
+                  onChangeText={setRecordDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#BBB"
+                />
 
-            <Text style={styles.label}>體重（kg）</Text>
-            <TextInput
-              style={styles.input}
-              value={weight}
-              onChangeText={setWeight}
-              keyboardType="decimal-pad"
-              placeholder="例如：5.2"
-              placeholderTextColor="#BBB"
-            />
+                <Text style={styles.label}>體重（kg）</Text>
+                <TextInput
+                  style={styles.input}
+                  value={weight}
+                  onChangeText={setWeight}
+                  keyboardType="decimal-pad"
+                  placeholder="例如：5.2"
+                  placeholderTextColor="#BBB"
+                />
 
-            <Text style={styles.label}>身高（cm）</Text>
-            <TextInput
-              style={styles.input}
-              value={height}
-              onChangeText={setHeight}
-              keyboardType="decimal-pad"
-              placeholder="例如：60.5"
-              placeholderTextColor="#BBB"
-            />
+                <Text style={styles.label}>身高（cm）</Text>
+                <TextInput
+                  style={styles.input}
+                  value={height}
+                  onChangeText={setHeight}
+                  keyboardType="decimal-pad"
+                  placeholder="例如：60.5"
+                  placeholderTextColor="#BBB"
+                />
 
-            <Text style={styles.label}>備註</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={3}
-              placeholder="選填"
-              placeholderTextColor="#BBB"
-            />
+                <Text style={styles.label}>備註</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={notes}
+                  onChangeText={setNotes}
+                  multiline
+                  numberOfLines={3}
+                  placeholder="選填"
+                  placeholderTextColor="#BBB"
+                />
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalCancelText}>取消</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleAdd}>
-                <Text style={styles.modalSaveText}>保存</Text>
-              </TouchableOpacity>
+                <View style={styles.modalActions}>
+                  <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
+                    <Text style={styles.modalCancelText}>取消</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalSaveBtn} onPress={handleAdd}>
+                    <Text style={styles.modalSaveText}>保存</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
-          </View>
-        </View>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
@@ -327,6 +339,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF5F5' },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 20 },
+  photoRow: { alignItems: 'center', marginBottom: 16 },
+  babyAvatar: { width: 144, height: 144, borderRadius: 72, borderWidth: 3, borderColor: '#FF6B8A' },
   actionRow: { flexDirection: 'row', marginBottom: 16, gap: 12 },
   addBtn: {
     flex: 1,

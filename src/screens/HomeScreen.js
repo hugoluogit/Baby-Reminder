@@ -1,14 +1,39 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { getUserProfile } from '../storage/settings';
 import AdBanner from '../components/AdBanner';
 
 export default function HomeScreen({ navigation }) {
+  const [momPhoto, setMomPhoto] = useState(null);
+  const [babyPhoto, setBabyPhoto] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
+
+  async function loadProfile() {
+    const profile = await getUserProfile();
+    if (profile) {
+      setMomPhoto(profile.momPhoto || null);
+      setBabyPhoto(profile.babyPhoto || null);
+    }
+  }
+
+  const displayPhoto = babyPhoto || momPhoto;
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeCard}>
-          <Ionicons name="happy-outline" size={64} color="#FF6B8A" />
+          {displayPhoto ? (
+            <Image source={{ uri: displayPhoto }} style={styles.avatar} />
+          ) : (
+            <Ionicons name="happy-outline" size={64} color="#FF6B8A" />
+          )}
           <Text style={styles.welcomeTitle}>Baby Steps</Text>
           <Text style={styles.welcomeSubtitle}>陪伴您和寶寶的健康旅程</Text>
         </View>
@@ -20,24 +45,28 @@ export default function HomeScreen({ navigation }) {
           title="孕期指導"
           description="產檢時間表和提醒，讓您不錯過任何重要檢查"
           color="#FF6B8A"
+          onPress={() => navigation.navigate('孕期')}
         />
         <FeatureCard
           icon="bandage-outline"
           title="疫苗指導"
           description="寶寶疫苗接種時間表和提醒，守護寶寶健康"
           color="#4CAF50"
+          onPress={() => navigation.navigate('寶寶')}
         />
         <FeatureCard
           icon="trending-up-outline"
           title="成長記錄"
           description="記錄寶寶身高體重，查看成長曲線圖表"
           color="#2196F3"
+          onPress={() => navigation.navigate('成長')}
         />
         <FeatureCard
           icon="book-outline"
           title="育兒知識"
           description="專業育兒文章，幫助新手父母輕鬆應對"
           color="#FF9800"
+          onPress={() => navigation.navigate('知識')}
         />
 
         <View style={styles.sourceCard}>
@@ -53,9 +82,9 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-function FeatureCard({ icon, title, description, color }) {
+function FeatureCard({ icon, title, description, color, onPress }) {
   return (
-    <View style={styles.featureCard}>
+    <TouchableOpacity style={styles.featureCard} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
         <Ionicons name={icon} size={28} color={color} />
       </View>
@@ -63,7 +92,7 @@ function FeatureCard({ icon, title, description, color }) {
         <Text style={styles.featureTitle}>{title}</Text>
         <Text style={styles.featureDescription}>{description}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -83,6 +112,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
+  avatar: { width: 160, height: 160, borderRadius: 80 },
   welcomeTitle: { fontSize: 28, fontWeight: 'bold', color: '#FF6B8A', marginTop: 12 },
   welcomeSubtitle: { fontSize: 16, color: '#666666', marginTop: 8 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333333', marginBottom: 12 },

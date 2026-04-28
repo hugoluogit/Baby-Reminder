@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { getUserProfile, saveUserProfile } from '../storage/settings';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen({ navigation }) {
   const [mode, setMode] = useState('baby');
@@ -12,6 +13,8 @@ export default function ProfileScreen({ navigation }) {
   const [gender, setGender] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [momPhoto, setMomPhoto] = useState(null);
+  const [babyPhoto, setBabyPhoto] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,6 +30,28 @@ export default function ProfileScreen({ navigation }) {
       setGender(profile.gender || '');
       setBirthDate(profile.birthDate || '');
       setDueDate(profile.dueDate || '');
+      setMomPhoto(profile.momPhoto || null);
+      setBabyPhoto(profile.babyPhoto || null);
+    }
+  }
+
+  async function pickPhoto(type) {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('提示', '需要存取相簿權限才能上傳照片');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      if (type === 'mom') setMomPhoto(result.assets[0].uri);
+      else setBabyPhoto(result.assets[0].uri);
     }
   }
 
@@ -46,6 +71,8 @@ export default function ProfileScreen({ navigation }) {
       gender,
       birthDate: mode === 'baby' ? birthDate : '',
       dueDate: mode === 'pregnancy' ? dueDate : '',
+      momPhoto: mode === 'pregnancy' ? momPhoto : (momPhoto || null),
+      babyPhoto: mode === 'baby' ? babyPhoto : (babyPhoto || null),
       updatedAt: new Date().toISOString(),
     };
 
@@ -138,6 +165,17 @@ export default function ProfileScreen({ navigation }) {
             placeholder="YYYY-MM-DD"
             placeholderTextColor="#BBB"
           />
+          <Text style={styles.hint}>格式為 YYYY-MM-DD，例如：2026-12-25</Text>
+
+          <Text style={styles.label}>寶寶照片</Text>
+          <TouchableOpacity style={styles.photoBtn} onPress={() => pickPhoto('baby')}>
+            {babyPhoto ? (
+              <Image source={{ uri: babyPhoto }} style={styles.photoPreview} />
+            ) : (
+              <Ionicons name="camera-outline" size={24} color="#FF6B8A" />
+            )}
+            <Text style={styles.photoBtnText}>{babyPhoto ? '更換照片' : '上傳寶寶照片'}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -156,6 +194,17 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.hint}>
             請輸入醫生給出的預產期日期
           </Text>
+          <Text style={styles.hint}>格式為 YYYY-MM-DD，例如：2026-12-25</Text>
+
+          <Text style={styles.label}>媽媽照片</Text>
+          <TouchableOpacity style={styles.photoBtn} onPress={() => pickPhoto('mom')}>
+            {momPhoto ? (
+              <Image source={{ uri: momPhoto }} style={styles.photoPreview} />
+            ) : (
+              <Ionicons name="camera-outline" size={24} color="#FF6B8A" />
+            )}
+            <Text style={styles.photoBtnText}>{momPhoto ? '更換照片' : '上傳媽媽照片'}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -227,6 +276,23 @@ const styles = StyleSheet.create({
   genderText: { fontSize: 16, fontWeight: '600', color: '#666', marginLeft: 8 },
   genderTextActive: { color: '#FFF' },
   hint: { fontSize: 13, color: '#888', marginTop: 8, fontStyle: 'italic' },
+  photoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F5',
+    borderWidth: 1,
+    borderColor: '#FFE0E6',
+    borderRadius: 10,
+    padding: 14,
+    marginTop: 6,
+  },
+  photoPreview: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  photoBtnText: { fontSize: 15, color: '#FF6B8A', fontWeight: '500' },
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',

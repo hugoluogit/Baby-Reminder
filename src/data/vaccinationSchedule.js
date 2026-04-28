@@ -5,7 +5,7 @@ const vaccines = [
     id: 'v001',
     name: '乙型肝炎疫苗第一針 + 卡介苗',
     age: '出生',
-    ageDays: 0,
+    ageDays: 1,
     diseases: '乙型肝炎、肺結核',
     notes: '出生後盡快接種',
   },

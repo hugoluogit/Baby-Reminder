@@ -389,9 +389,6 @@ const styles = StyleSheet.create({
   checkupItems: { fontSize: 14, color: '#666', marginTop: 10, lineHeight: 20 },
   checkupNotes: { fontSize: 13, color: '#888', marginTop: 6, fontStyle: 'italic' },
   reminderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
@@ -399,7 +396,7 @@ const styles = StyleSheet.create({
   },
   reminderBtn: { flexDirection: 'row', alignItems: 'center' },
   reminderBtnText: { fontSize: 13, color: '#FF6B8A', marginLeft: 4 },
-  reminderInfo: { fontSize: 12, color: '#888' },
+  reminderInfo: { fontSize: 12, color: '#888', marginTop: 6 },
   emptyCard: {
     backgroundColor: '#FFF',
     borderRadius: 16,
