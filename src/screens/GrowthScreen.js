@@ -6,14 +6,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { getGrowthRecords, saveGrowthRecord, deleteGrowthRecord } from '../storage/settings';
-import { formatDateChinese } from '../utils/dateUtils';
+import { getGrowthRecords, saveGrowthRecord, deleteGrowthRecord, getUserProfile } from '../storage/settings';
+import { formatDateChinese, calculateAgeInMonths } from '../utils/dateUtils';
+import { getReferenceAtMonth } from '../data/growthStandards';
 import AdBanner from '../components/AdBanner';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function GrowthScreen() {
   const [records, setRecords] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [showChart, setShowChart] = useState(false);
   const [chartType, setChartType] = useState('weight');
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,9 +31,13 @@ export default function GrowthScreen() {
   );
 
   async function loadRecords() {
-    const data = await getGrowthRecords();
+    const [data, profileData] = await Promise.all([
+      getGrowthRecords(),
+      getUserProfile(),
+    ]);
     const sorted = data.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
     setRecords(sorted);
+    setProfile(profileData);
   }
 
   async function handleAdd() {
@@ -74,17 +80,66 @@ export default function GrowthScreen() {
 
   function prepareChartData(type) {
     const sorted = [...records].sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
-    const labels = sorted.map(r => {
+
+    const birthDate = profile?.birthDate;
+    const gender = profile?.gender || 'male';
+    const hasReference = birthDate && profile?.mode === 'baby';
+
+    // 只保留有對應測量值的記錄
+    const validRecords = sorted.filter(r => {
+      const val = type === 'weight' ? r.weight : r.height;
+      return val !== null && val !== undefined;
+    });
+
+    if (validRecords.length === 0) return null;
+
+    const labels = validRecords.map(r => {
+      if (hasReference) {
+        const ageMonths = calculateAgeInMonths(birthDate, r.date || r.createdAt);
+        return Math.round(ageMonths) + 'm';
+      }
       const d = new Date(r.date || r.createdAt);
       return `${d.getMonth() + 1}/${d.getDate()}`;
     });
-    const data = sorted.map(r => type === 'weight' ? r.weight : r.height).filter(v => v !== null);
 
-    if (data.length === 0) return null;
+    const userData = validRecords.map(r => (type === 'weight' ? r.weight : r.height));
+
+    const datasets = [
+      {
+        data: userData,
+        color: (opacity = 1) => `rgba(255, 107, 138, ${opacity})`,
+        strokeWidth: 2,
+      },
+    ];
+
+    // 疊加香港標準參考曲線
+    if (hasReference) {
+      const refP3 = [];
+      const refP50 = [];
+      const refP97 = [];
+
+      validRecords.forEach(r => {
+        const ageMonths = calculateAgeInMonths(birthDate, r.date || r.createdAt);
+        const ref = getReferenceAtMonth(gender, type, ageMonths);
+        refP3.push(ref ? ref.p3 : null);
+        refP50.push(ref ? ref.p50 : null);
+        refP97.push(ref ? ref.p97 : null);
+      });
+
+      if (refP50.some(v => v !== null)) {
+        datasets.push(
+          { data: refP97, color: () => 'rgba(180, 180, 180, 0.5)', strokeWidth: 1, withDots: false },
+          { data: refP50, color: () => 'rgba(150, 150, 150, 0.7)', strokeWidth: 1.5, withDots: false },
+          { data: refP3, color: () => 'rgba(180, 180, 180, 0.5)', strokeWidth: 1, withDots: false },
+        );
+      }
+    }
 
     return {
-      labels: labels.length > 6 ? labels.filter((_, i) => i % Math.ceil(labels.length / 6) === 0) : labels,
-      datasets: [{ data }],
+      labels: labels.length > 6
+        ? labels.filter((_, i) => i % Math.ceil(labels.length / 6) === 0)
+        : labels,
+      datasets,
     };
   }
 
@@ -139,6 +194,27 @@ export default function GrowthScreen() {
               bezier
               style={styles.chart}
             />
+            {profile?.birthDate && profile?.mode === 'baby' && chartData?.datasets?.length > 1 ? (
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendLine, { backgroundColor: '#FF6B8A' }]} />
+                  <Text style={styles.legendText}>寶寶</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendLine, { backgroundColor: 'rgba(150,150,150,0.7)' }]} />
+                  <Text style={styles.legendText}>P50</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendLine, { backgroundColor: 'rgba(180,180,180,0.5)' }]} />
+                  <Text style={styles.legendText}>P3/P97</Text>
+                </View>
+              </View>
+            ) : null}
+            {profile?.birthDate && profile?.mode === 'baby' && chartData?.datasets?.length > 1 ? (
+              <Text style={styles.percentileHint}>
+                P50 = 同年齡兒童的中位數 ｜ P3 / P97 = 正常範圍（3% ~ 97%）
+              </Text>
+            ) : null}
           </View>
         ) : showChart && !chartData ? (
           <View style={styles.emptyChart}>
@@ -292,6 +368,22 @@ const styles = StyleSheet.create({
   chartTypeText: { fontSize: 14, color: '#666' },
   chartTypeTextActive: { color: '#FFF', fontWeight: '600' },
   chart: { borderRadius: 8 },
+  legendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 16,
+  },
+  legendItem: { flexDirection: 'row', alignItems: 'center' },
+  legendLine: { width: 16, height: 3, borderRadius: 2, marginRight: 6 },
+  legendText: { fontSize: 12, color: '#888' },
+  percentileHint: {
+    fontSize: 11,
+    color: '#AAA',
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 4,
+  },
   emptyChart: {
     backgroundColor: '#FFF',
     borderRadius: 12,

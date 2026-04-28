@@ -55,3 +55,19 @@ export function formatDateShort(date) {
   const day = String(d.getDate()).padStart(2, '0');
   return `${month}/${day}`;
 }
+
+/**
+ * 計算 targetDate 時的年齡（月齡，精確到小數）
+ * @param {string|Date} birthDate 出生日期
+ * @param {string|Date} targetDate 目標日期
+ * @returns {number} 月齡，例如 3.5 = 3個月15天
+ */
+export function calculateAgeInMonths(birthDate, targetDate) {
+  if (!birthDate || !targetDate) return 0;
+  const birth = new Date(birthDate);
+  const target = new Date(targetDate);
+  const diffMs = target - birth;
+  if (diffMs <= 0) return 0;
+  // 以平均每月 30.4375 天計算
+  return diffMs / (1000 * 60 * 60 * 24 * 30.4375);
+}
