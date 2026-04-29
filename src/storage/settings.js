@@ -10,6 +10,7 @@ const KEYS = {
   COMPLETED_CHECKUPS: '@completed_checkups',
   VACCINE_REMINDERS: '@vaccine_reminders',
   CHECKUP_REMINDERS: '@checkup_reminders',
+  CUSTOM_REMINDERS: '@custom_reminders',
 };
 
 export async function saveNotificationSettings(reminderTime, daysBefore) {
@@ -172,5 +173,65 @@ export async function getCheckupReminders() {
   } catch (e) {
     console.error('讀取產檢提醒失敗:', e);
     return {};
+  }
+}
+
+// === 自訂提醒 ===
+
+export async function getCustomReminders(screen) {
+  try {
+    const json = await AsyncStorage.getItem(KEYS.CUSTOM_REMINDERS);
+    if (json) {
+      const all = JSON.parse(json);
+      return all.filter(r => r.screen === screen);
+    }
+    return [];
+  } catch (e) {
+    console.error('讀取自訂提醒失敗:', e);
+    return [];
+  }
+}
+
+export async function saveCustomReminder(reminder) {
+  try {
+    const json = await AsyncStorage.getItem(KEYS.CUSTOM_REMINDERS);
+    const all = json ? JSON.parse(json) : [];
+    const newItem = { ...reminder, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    all.push(newItem);
+    await AsyncStorage.setItem(KEYS.CUSTOM_REMINDERS, JSON.stringify(all));
+    return newItem;
+  } catch (e) {
+    console.error('儲存自訂提醒失敗:', e);
+    return null;
+  }
+}
+
+export async function updateCustomReminder(id, updates) {
+  try {
+    const json = await AsyncStorage.getItem(KEYS.CUSTOM_REMINDERS);
+    if (!json) return false;
+    const all = JSON.parse(json);
+    const idx = all.findIndex(r => r.id === id);
+    if (idx === -1) return false;
+    all[idx] = { ...all[idx], ...updates };
+    await AsyncStorage.setItem(KEYS.CUSTOM_REMINDERS, JSON.stringify(all));
+    return true;
+  } catch (e) {
+    console.error('更新自訂提醒失敗:', e);
+    return false;
+  }
+}
+
+export async function deleteCustomReminder(id) {
+  try {
+    const json = await AsyncStorage.getItem(KEYS.CUSTOM_REMINDERS);
+    if (!json) return false;
+    const all = JSON.parse(json);
+    const filtered = all.filter(r => r.id !== id);
+    await AsyncStorage.setItem(KEYS.CUSTOM_REMINDERS, JSON.stringify(filtered));
+    return true;
+  } catch (e) {
+    console.error('刪除自訂提醒失敗:', e);
+    return false;
   }
 }

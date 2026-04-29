@@ -40,6 +40,25 @@ const STANDARDS = {
       { month: 18, p3: 71.7, p50: 75.8, p97: 80.0 },
       { month: 24, p3: 75.3, p50: 79.8, p97: 84.4 },
     ],
+    headCircumference: [
+      { month: 0, p3: 32.1, p50: 34.5, p97: 36.9 },
+      { month: 1, p3: 35.1, p50: 37.3, p97: 39.5 },
+      { month: 2, p3: 36.9, p50: 39.1, p97: 41.3 },
+      { month: 3, p3: 38.3, p50: 40.5, p97: 42.7 },
+      { month: 4, p3: 39.4, p50: 41.6, p97: 43.9 },
+      { month: 5, p3: 40.3, p50: 42.6, p97: 44.8 },
+      { month: 6, p3: 41.0, p50: 43.3, p97: 45.6 },
+      { month: 7, p3: 41.7, p50: 44.0, p97: 46.3 },
+      { month: 8, p3: 42.2, p50: 44.5, p97: 46.9 },
+      { month: 9, p3: 42.6, p50: 45.0, p97: 47.4 },
+      { month: 10, p3: 43.0, p50: 45.4, p97: 47.8 },
+      { month: 11, p3: 43.4, p50: 45.8, p97: 48.2 },
+      { month: 12, p3: 43.7, p50: 46.1, p97: 48.5 },
+      { month: 15, p3: 44.3, p50: 46.8, p97: 49.3 },
+      { month: 18, p3: 44.9, p50: 47.4, p97: 49.9 },
+      { month: 21, p3: 45.3, p50: 47.8, p97: 50.4 },
+      { month: 24, p3: 45.7, p50: 48.3, p97: 50.8 },
+    ],
   },
   female: {
     weight: [
@@ -78,6 +97,25 @@ const STANDARDS = {
       { month: 18, p3: 71.2, p50: 75.3, p97: 79.6 },
       { month: 24, p3: 74.8, p50: 79.3, p97: 84.1 },
     ],
+    headCircumference: [
+      { month: 0, p3: 31.7, p50: 33.9, p97: 36.1 },
+      { month: 1, p3: 34.3, p50: 36.5, p97: 38.8 },
+      { month: 2, p3: 36.0, p50: 38.3, p97: 40.5 },
+      { month: 3, p3: 37.2, p50: 39.5, p97: 41.9 },
+      { month: 4, p3: 38.2, p50: 40.6, p97: 43.0 },
+      { month: 5, p3: 39.0, p50: 41.5, p97: 43.9 },
+      { month: 6, p3: 39.8, p50: 42.2, p97: 44.7 },
+      { month: 7, p3: 40.4, p50: 42.8, p97: 45.3 },
+      { month: 8, p3: 40.9, p50: 43.4, p97: 45.9 },
+      { month: 9, p3: 41.3, p50: 43.8, p97: 46.4 },
+      { month: 10, p3: 41.7, p50: 44.2, p97: 46.8 },
+      { month: 11, p3: 42.0, p50: 44.6, p97: 47.1 },
+      { month: 12, p3: 42.3, p50: 44.9, p97: 47.5 },
+      { month: 15, p3: 43.0, p50: 45.7, p97: 48.3 },
+      { month: 18, p3: 43.7, p50: 46.2, p97: 48.8 },
+      { month: 21, p3: 44.2, p50: 46.7, p97: 49.3 },
+      { month: 24, p3: 44.6, p50: 47.2, p97: 49.8 },
+    ],
   },
 };
 
@@ -96,7 +134,7 @@ function interpolate(a, b, targetMonth) {
 /**
  * 根據性別、類型（weight/height）和月齡獲取參考值
  * @param {'male'|'female'} gender
- * @param {'weight'|'height'} type
+ * @param {'weight'|'height'|'headCircumference'} type
  * @param {number} month 月齡（小數）
  * @returns {{ p3: number, p50: number, p97: number } | null}
  */

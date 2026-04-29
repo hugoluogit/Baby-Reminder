@@ -23,6 +23,7 @@ export default function GrowthScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const [headCircumference, setHeadCircumference] = useState('');
   const [notes, setNotes] = useState('');
   const [recordDate, setRecordDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -44,8 +45,8 @@ export default function GrowthScreen() {
   }
 
   async function handleAdd() {
-    if (!weight && !height) {
-      Alert.alert('提示', '請輸入體重或身高');
+    if (!weight && !height && !headCircumference) {
+      Alert.alert('提示', '請輸入至少一項數值');
       return;
     }
 
@@ -53,6 +54,7 @@ export default function GrowthScreen() {
       date: recordDate,
       weight: weight ? parseFloat(weight) : null,
       height: height ? parseFloat(height) : null,
+      headCircumference: headCircumference ? parseFloat(headCircumference) : null,
       notes: notes || '',
     };
 
@@ -60,6 +62,7 @@ export default function GrowthScreen() {
     if (result) {
       setWeight('');
       setHeight('');
+      setHeadCircumference('');
       setNotes('');
       setRecordDate(new Date().toISOString().split('T')[0]);
       setModalVisible(false);
@@ -90,7 +93,7 @@ export default function GrowthScreen() {
 
     // 只保留有對應測量值的記錄
     const validRecords = sorted.filter(r => {
-      const val = type === 'weight' ? r.weight : r.height;
+      const val = type === 'weight' ? r.weight : type === 'headCircumference' ? r.headCircumference : r.height;
       return val !== null && val !== undefined;
     });
 
@@ -105,7 +108,7 @@ export default function GrowthScreen() {
       return `${d.getMonth() + 1}/${d.getDate()}`;
     });
 
-    const userData = validRecords.map(r => (type === 'weight' ? r.weight : r.height));
+    const userData = validRecords.map(r => (type === 'weight' ? r.weight : type === 'headCircumference' ? r.headCircumference : r.height));
 
     const datasets = [
       {
@@ -185,6 +188,12 @@ export default function GrowthScreen() {
               >
                 <Text style={[styles.chartTypeText, chartType === 'height' && styles.chartTypeTextActive]}>身高</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.chartTypeBtn, chartType === 'headCircumference' && styles.chartTypeBtnActive]}
+                onPress={() => setChartType('headCircumference')}
+              >
+                <Text style={[styles.chartTypeText, chartType === 'headCircumference' && styles.chartTypeTextActive]}>頭圍</Text>
+              </TouchableOpacity>
             </View>
             <LineChart
               data={chartData}
@@ -260,6 +269,12 @@ export default function GrowthScreen() {
                         <Text style={styles.recordValue}>{record.height} cm</Text>
                       </View>
                     )}
+                    {record.headCircumference && (
+                      <View style={styles.recordItem}>
+                        <Text style={styles.recordLabel}>頭圍</Text>
+                        <Text style={styles.recordValue}>{record.headCircumference} cm</Text>
+                      </View>
+                    )}
                   </View>
                   {record.notes ? <Text style={styles.recordNotes}>{record.notes}</Text> : null}
                 </View>
@@ -304,6 +319,16 @@ export default function GrowthScreen() {
                   onChangeText={setHeight}
                   keyboardType="decimal-pad"
                   placeholder="例如：60.5"
+                  placeholderTextColor="#BBB"
+                />
+
+                <Text style={styles.label}>頭圍（cm）</Text>
+                <TextInput
+                  style={styles.input}
+                  value={headCircumference}
+                  onChangeText={setHeadCircumference}
+                  keyboardType="decimal-pad"
+                  placeholder="例如：40.0"
                   placeholderTextColor="#BBB"
                 />
 

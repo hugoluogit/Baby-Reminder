@@ -55,6 +55,13 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
+  function isValidDate(str) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+    const d = new Date(str);
+    const [y, m, day] = str.split('-').map(Number);
+    return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
+  }
+
   async function handleSave() {
     if (mode === 'baby' && !birthDate) {
       Alert.alert('提示', '請輸入寶寶出生日期');
@@ -62,6 +69,14 @@ export default function ProfileScreen({ navigation }) {
     }
     if (mode === 'pregnancy' && !dueDate) {
       Alert.alert('提示', '請輸入預產期');
+      return;
+    }
+    if (mode === 'baby' && birthDate && !isValidDate(birthDate)) {
+      Alert.alert('格式錯誤', '出生日期格式不正確，請使用 YYYY-MM-DD 格式（如 2026-12-25）');
+      return;
+    }
+    if (mode === 'pregnancy' && dueDate && !isValidDate(dueDate)) {
+      Alert.alert('格式錯誤', '預產期格式不正確，請使用 YYYY-MM-DD 格式（如 2026-12-25）');
       return;
     }
 

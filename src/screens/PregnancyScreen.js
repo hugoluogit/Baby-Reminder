@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform, TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import checkupsData, { calculatePregnancyWeek, getCheckupsByWeek } from '../data
 import {
   getUserProfile, saveCompletedCheckups, getCompletedCheckups,
   saveCheckupReminders, getCheckupReminders, getNotificationSettings,
+  getCustomReminders, saveCustomReminder, updateCustomReminder, deleteCustomReminder,
 } from '../storage/settings';
 import { checkAndRequestPermission, scheduleNotificationAtDate, cancelNotification } from '../utils/notifications';
 import AdBanner from '../components/AdBanner';
@@ -24,6 +25,11 @@ export default function PregnancyScreen() {
   const [editingCheckup, setEditingCheckup] = useState(null);
   const [editDaysBefore, setEditDaysBefore] = useState(3);
   const [editHour, setEditHour] = useState(10);
+  const [customReminders, setCustomReminders] = useState([]);
+  const [customModalVisible, setCustomModalVisible] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customDate, setCustomDate] = useState('');
+  const [customHour, setCustomHour] = useState(10);
 
   useFocusEffect(
     useCallback(() => {
@@ -54,6 +60,8 @@ export default function PregnancyScreen() {
     }
     setPregnancyWeek(week);
     setCheckupList(getCheckupsByWeek(week, completed));
+    const custom = await getCustomReminders('pregnancy');
+    setCustomReminders(custom);
   }
 
   async function handleAutoSchedule(profileData, existingReminders, completedArray = []) {
@@ -224,6 +232,106 @@ export default function PregnancyScreen() {
     return `${y}年${m}月${day}日 ${String(reminder.hour).padStart(2, '0')}:00`;
   }
 
+  // === 自訂提醒 ===
+
+  function isValidDate(str) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+    const d = new Date(str);
+    const [y, m, day] = str.split('-').map(Number);
+    return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
+  }
+
+  async function handleAddCustom() {
+    if (!customName.trim()) {
+      Alert.alert('提示', '請輸入提醒名稱');
+      return;
+    }
+    if (!customDate || !isValidDate(customDate)) {
+      Alert.alert('格式錯誤', '日期格式不正確，請使用 YYYY-MM-DD 格式（如 2026-12-25）');
+      return;
+    }
+
+    const remindDate = new Date(customDate);
+    remindDate.setHours(customHour, 0, 0, 0);
+
+    let notificationId = null;
+    if (remindDate > new Date()) {
+      const hasPerm = await checkAndRequestPermission();
+      if (hasPerm) {
+        try {
+          notificationId = await scheduleNotificationAtDate(
+            '自訂提醒',
+            customName.trim(),
+            { type: 'custom', id: Date.now().toString() },
+            remindDate
+          );
+        } catch (e) {
+          console.warn('排程自訂通知失敗:', e);
+        }
+      }
+    }
+
+    const reminder = {
+      screen: 'pregnancy',
+      name: customName.trim(),
+      date: customDate || new Date().toISOString().split('T')[0],
+      hour: customHour,
+      minute: 0,
+      notificationId,
+      completed: false,
+    };
+    const result = await saveCustomReminder(reminder);
+    if (result) {
+      setCustomName('');
+      setCustomDate('');
+      setCustomHour(10);
+      setCustomModalVisible(false);
+      const custom = await getCustomReminders('pregnancy');
+      setCustomReminders(custom);
+    }
+  }
+
+  async function handleCompleteCustom(id) {
+    const reminder = customReminders.find(r => r.id === id);
+    if (!reminder) return;
+    // 標記完成時取消通知
+    if (!reminder.completed && reminder.notificationId) {
+      try { await cancelNotification(reminder.notificationId); } catch (_) {}
+    }
+    await updateCustomReminder(id, { completed: !reminder.completed });
+    const custom = await getCustomReminders('pregnancy');
+    setCustomReminders(custom);
+  }
+
+  async function handleDeleteCustom(id) {
+    Alert.alert('確認刪除', '確定要刪除此提醒嗎？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '刪除',
+        style: 'destructive',
+        onPress: async () => {
+          const reminder = customReminders.find(r => r.id === id);
+          if (reminder?.notificationId) {
+            try { await cancelNotification(reminder.notificationId); } catch (_) {}
+          }
+          await deleteCustomReminder(id);
+          const custom = await getCustomReminders('pregnancy');
+          setCustomReminders(custom);
+        },
+      },
+    ]);
+  }
+
+  function formatCustomDate(dateStr, hour, minute) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    let text = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    if (hour !== undefined) {
+      text += ` ${String(hour).padStart(2, '0')}:${String(minute ?? 0).padStart(2, '0')}`;
+    }
+    return text;
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -279,6 +387,44 @@ export default function PregnancyScreen() {
                 </View>
               </View>
             ))}
+
+            {customReminders.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>自訂提醒</Text>
+                {customReminders.map(item => (
+                  <View key={item.id} style={[styles.checkupCard, item.completed && styles.completedCard]}>
+                    <View style={styles.checkupHeader}>
+                      <View style={[styles.statusDot, {
+                        backgroundColor: item.completed ? '#4CAF50' : '#FF9800'
+                      }]} />
+                      <View style={styles.checkupInfo}>
+                        <Text style={styles.checkupName}>{item.name}</Text>
+                        <Text style={styles.checkupWeeks}>{formatCustomDate(item.date, item.hour, item.minute)}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.completeBtn}
+                        onPress={() => handleCompleteCustom(item.id)}
+                      >
+                        <Ionicons
+                          name={item.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                          size={24}
+                          color={item.completed ? '#4CAF50' : '#FF9800'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={styles.deleteCustomBtn} onPress={() => handleDeleteCustom(item.id)}>
+                      <Ionicons name="trash-outline" size={16} color="#FF5252" />
+                      <Text style={styles.deleteCustomText}>刪除</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </>
+            )}
+
+            <TouchableOpacity style={styles.addCustomBtn} onPress={() => setCustomModalVisible(true)}>
+              <Ionicons name="add-circle-outline" size={20} color="#FF6B8A" />
+              <Text style={styles.addCustomBtnText}>添加自訂提醒</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <View style={styles.emptyCard}>
@@ -346,6 +492,61 @@ export default function PregnancyScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      <Modal visible={customModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalContent} keyboardShouldPersistTaps="handled">
+            <Text style={styles.modalTitle}>添加自訂提醒</Text>
+
+            <Text style={styles.label}>提醒名稱</Text>
+            <TextInput
+              style={styles.input}
+              value={customName}
+              onChangeText={setCustomName}
+              placeholder="例如：入園登記"
+              placeholderTextColor="#BBB"
+            />
+
+            <Text style={styles.label}>日期</Text>
+            <TextInput
+              style={styles.input}
+              value={customDate}
+              onChangeText={setCustomDate}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#BBB"
+            />
+
+            <Text style={styles.label}>提醒時間</Text>
+            <View style={styles.pickerRow}>
+              {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                <TouchableOpacity
+                  key={h}
+                  style={[styles.pickerBtn, customHour === h && styles.pickerBtnActive]}
+                  onPress={() => setCustomHour(h)}
+                >
+                  <Text style={[styles.pickerBtnText, customHour === h && styles.pickerBtnTextActive]}>
+                    {String(h).padStart(2, '0')}:00
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => {
+                setCustomModalVisible(false);
+                setCustomName('');
+                setCustomDate('');
+                setCustomHour(10);
+              }}>
+                <Text style={styles.modalCancelText}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleAddCustom}>
+                <Text style={styles.modalSaveText}>添加</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -416,6 +617,7 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
+  modalScroll: { maxHeight: '70%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', textAlign: 'center' },
   modalSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginTop: 4, marginBottom: 16 },
   label: { fontSize: 15, fontWeight: '600', color: '#333', marginTop: 12, marginBottom: 8 },
@@ -455,4 +657,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSaveText: { fontSize: 16, color: '#FFF', fontWeight: '600' },
+
+  // 自訂提醒樣式
+  input: {
+    borderWidth: 1,
+    borderColor: '#EEE',
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#FAFAFA',
+  },
+  addCustomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#FF6B8A',
+    borderStyle: 'dashed',
+  },
+  addCustomBtnText: { fontSize: 15, color: '#FF6B8A', fontWeight: '600', marginLeft: 6 },
+  deleteCustomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+  },
+  deleteCustomText: { fontSize: 13, color: '#FF5252', marginLeft: 4 },
 });
