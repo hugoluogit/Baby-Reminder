@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { getNotificationSettings, saveNotificationSettings } from '../storage/settings';
 import { cancelAllNotifications, getScheduledNotifications } from '../utils/notifications';
+import AdBanner from '../components/AdBanner';
 
 export default function SettingsScreen() {
   const [reminderTime, setReminderTime] = useState('10:00');
@@ -68,6 +69,7 @@ export default function SettingsScreen() {
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: '#FFF5F5' }}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>提醒設置</Text>
@@ -132,6 +134,8 @@ export default function SettingsScreen() {
         </Text>
       </View>
     </ScrollView>
+      <AdBanner />
+    </View>
   );
 }
 

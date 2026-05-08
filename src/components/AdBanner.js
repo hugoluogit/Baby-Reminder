@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 let BannerAd = null;
 let BannerAdSize = null;
@@ -18,7 +19,12 @@ try {
 
 export default function AdBanner() {
   if (!nativeModuleAvailable) {
-    return <View style={styles.container} />;
+    return (
+      <View style={styles.placeholder}>
+        <Ionicons name="megaphone-outline" size={14} color="#CCC" />
+        <Text style={styles.placeholderText}>廣告位</Text>
+      </View>
+    );
   }
 
   return (
@@ -38,6 +44,25 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     backgroundColor: '#FFF5F5',
-    paddingBottom: Platform.OS === 'ios' ? 0 : 4,
+    paddingVertical: Platform.OS === 'ios' ? 0 : 4,
+    minHeight: 50,
+  },
+  placeholder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F0F0',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+  },
+  placeholderText: {
+    fontSize: 13,
+    color: '#BBB',
+    marginLeft: 6,
   },
 });

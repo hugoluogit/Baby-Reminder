@@ -74,7 +74,7 @@ export default function App() {
         <Text style={updateStyles.subtitle}>目前版本：{appConfig.expo.version}</Text>
         <TouchableOpacity
           style={updateStyles.button}
-          onPress={() => Linking.openURL('https://apps.apple.com/app/com.babyreminder.app')}
+          onPress={() => Linking.openURL('https://apps.apple.com/app/com.babysteps.hk')}
         >
           <Ionicons name="open-outline" size={20} color="#FFF" />
           <Text style={updateStyles.buttonText}>前往下載</Text>

@@ -1,5 +1,12 @@
 // 育兒文章數據
 
+export const ARTICLE_SOURCE = {
+  name: '香港衞生署 - 家庭健康服務',
+  url: 'https://www.fhs.gov.hk/tc_chi/health_info/child/14828.html',
+};
+
+export const ARTICLE_DISCLAIMER = '以上資訊僅供參考，並非醫療建議。如有健康問題，請諮詢醫生或專業醫護人員。';
+
 const articles = [
   {
     id: 'a001',

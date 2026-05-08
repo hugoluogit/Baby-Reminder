@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { getUserProfile, saveUserProfile } from '../storage/settings';
 import * as ImagePicker from 'expo-image-picker';
+import AdBanner from '../components/AdBanner';
 
 export default function ProfileScreen({ navigation }) {
   const [mode, setMode] = useState('baby');
@@ -100,6 +101,7 @@ export default function ProfileScreen({ navigation }) {
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: '#FFF5F5' }}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>模式選擇</Text>
@@ -234,6 +236,8 @@ export default function ProfileScreen({ navigation }) {
         <Ionicons name="chevron-forward" size={20} color="#CCC" />
       </TouchableOpacity>
     </ScrollView>
+      <AdBanner />
+    </View>
   );
 }
 

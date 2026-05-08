@@ -4,14 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { getUserProfile } from '../storage/settings';
 import AdBanner from '../components/AdBanner';
+import AdInterstitial from '../components/AdInterstitial';
 
 export default function HomeScreen({ navigation }) {
   const [momPhoto, setMomPhoto] = useState(null);
   const [babyPhoto, setBabyPhoto] = useState(null);
+  const [interstitialCount, setInterstitialCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       loadProfile();
+      setInterstitialCount(prev => prev + 1);
     }, [])
   );
 
@@ -24,6 +27,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   const displayPhoto = babyPhoto || momPhoto;
+  const showInterstitial = interstitialCount > 0 && interstitialCount % 3 === 0;
 
   return (
     <View style={styles.container}>
@@ -34,7 +38,7 @@ export default function HomeScreen({ navigation }) {
           ) : (
             <Ionicons name="happy-outline" size={64} color="#FF6B8A" />
           )}
-          <Text style={styles.welcomeTitle}>Baby Steps</Text>
+          <Text style={styles.welcomeTitle}>港嬰寶</Text>
           <Text style={styles.welcomeSubtitle}>陪伴您和寶寶的健康旅程</Text>
         </View>
 
@@ -75,9 +79,11 @@ export default function HomeScreen({ navigation }) {
             數據來源：香港衞生署公開資料
           </Text>
         </View>
+
+        <AdBanner />
       </ScrollView>
 
-      <AdBanner />
+      {showInterstitial ? <AdInterstitial /> : null}
     </View>
   );
 }

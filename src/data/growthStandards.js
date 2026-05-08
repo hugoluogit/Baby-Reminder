@@ -2,6 +2,11 @@
 // 數據來源：WHO Child Growth Standards
 // 百分位：P3（第3百分位）, P50（中位數）, P97（第97百分位）
 
+export const GROWTH_SOURCE = {
+  name: '世界衛生組織（WHO）兒童成長標準',
+  url: 'https://www.who.int/tools/child-growth-standards',
+};
+
 const STANDARDS = {
   male: {
     weight: [

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Baby Reminder",
-    "slug": "baby-reminder",
+    "name": "港嬰寶",
+    "slug": "baby-steps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,9 +14,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.babyreminder.app",
+      "bundleIdentifier": "com.babysteps.hk",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "寶寶記錄需要存取您的照片，讓您可以為媽媽和寶寶設定個人頭像，並在成長記錄中加入照片，使紀錄更豐富。"
       },
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
@@ -27,7 +31,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFF5F5"
       },
-      "package": "com.babyreminder.app",
+      "package": "com.babysteps.hk",
       "edgeToEdgeEnabled": true,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
@@ -39,6 +43,12 @@
     "plugins": [
       "expo-notifications",
       "react-native-google-mobile-ads"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "58be9d51-a681-4679-8902-f1ae18bd4932"
+      }
+    },
+    "owner": "hugoluo"
   }
 }

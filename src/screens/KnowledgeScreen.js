@@ -1,10 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getArticlesByCategory, searchArticles } from '../data/articles';
+import { useFocusEffect } from '@react-navigation/native';
+import { getArticlesByCategory, searchArticles, ARTICLE_SOURCE, ARTICLE_DISCLAIMER } from '../data/articles';
 import AdBanner from '../components/AdBanner';
+import SourceCitation from '../components/SourceCitation';
+import AdInterstitial from '../components/AdInterstitial';
 
 const categories = ['全部', '新生兒護理', '餵養指導', '睡眠指導', '疾病預防'];
 
@@ -50,6 +53,14 @@ export default function KnowledgeScreen() {
   const [articles, setArticles] = useState(getArticlesByCategory('全部'));
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [interstitialCount, setInterstitialCount] = useState(0);
+  const showInterstitial = interstitialCount > 0 && interstitialCount % 3 === 0;
+
+  useFocusEffect(
+    useCallback(() => {
+      setInterstitialCount(prev => prev + 1);
+    }, [])
+  );
 
   function handleCategoryPress(category) {
     setActiveCategory(category);
@@ -126,6 +137,7 @@ export default function KnowledgeScreen() {
       </ScrollView>
 
       <AdBanner />
+      {showInterstitial ? <AdInterstitial /> : null}
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -141,6 +153,8 @@ export default function KnowledgeScreen() {
                 <Text style={styles.articleBodyIcon}>{selectedArticle.icon}</Text>
               )}
               <ArticleContent content={selectedArticle?.content || ''} />
+              <SourceCitation source={ARTICLE_SOURCE} />
+              <Text style={styles.disclaimer}>{ARTICLE_DISCLAIMER}</Text>
             </ScrollView>
           </View>
         </View>
@@ -268,5 +282,16 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 26,
     flex: 1,
+  },
+  disclaimer: {
+    fontSize: 12,
+    color: '#999',
+    fontStyle: 'italic',
+    lineHeight: 18,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    textAlign: 'center',
   },
 });

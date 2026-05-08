@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CACHE_KEY = '@version_check_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 小時
-const BUNDLE_ID = 'com.babyreminder.app';
+const BUNDLE_ID = 'com.babysteps.hk';
 
 /**
  * 從 App Store（iTunes API）獲取最新版本

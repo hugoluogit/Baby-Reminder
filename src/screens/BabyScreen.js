@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { getVaccinesByAge } from '../data/vaccinationSchedule';
+import { getVaccinesByAge, VACCINE_SOURCE } from '../data/vaccinationSchedule';
 import { calculateBabyAge } from '../utils/dateUtils';
 import {
   getUserProfile, saveCompletedVaccines, getCompletedVaccines,
@@ -13,6 +13,7 @@ import {
 } from '../storage/settings';
 import { checkAndRequestPermission, scheduleNotificationAtDate, cancelNotification } from '../utils/notifications';
 import AdBanner from '../components/AdBanner';
+import SourceCitation from '../components/SourceCitation';
 import AdInterstitial from '../components/AdInterstitial';
 
 export default function BabyScreen() {
@@ -418,6 +419,8 @@ export default function BabyScreen() {
               <Ionicons name="add-circle-outline" size={20} color="#FF6B8A" />
               <Text style={styles.addCustomBtnText}>添加自訂提醒</Text>
             </TouchableOpacity>
+
+            <SourceCitation source={VACCINE_SOURCE} />
           </>
         ) : (
           <View style={styles.emptyCard}>

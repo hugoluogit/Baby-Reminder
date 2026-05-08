@@ -9,8 +9,10 @@ import { Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { getGrowthRecords, saveGrowthRecord, deleteGrowthRecord, getUserProfile } from '../storage/settings';
 import { formatDateChinese, calculateAgeInMonths } from '../utils/dateUtils';
-import { getReferenceAtMonth } from '../data/growthStandards';
+import { getReferenceAtMonth, GROWTH_SOURCE } from '../data/growthStandards';
 import AdBanner from '../components/AdBanner';
+import SourceCitation from '../components/SourceCitation';
+import AdInterstitial from '../components/AdInterstitial';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -26,10 +28,13 @@ export default function GrowthScreen() {
   const [headCircumference, setHeadCircumference] = useState('');
   const [notes, setNotes] = useState('');
   const [recordDate, setRecordDate] = useState(new Date().toISOString().split('T')[0]);
+  const [interstitialCount, setInterstitialCount] = useState(0);
+  const showInterstitial = interstitialCount > 0 && interstitialCount % 3 === 0;
 
   useFocusEffect(
     useCallback(() => {
       loadRecords();
+      setInterstitialCount(prev => prev + 1);
     }, [])
   );
 
@@ -228,9 +233,12 @@ export default function GrowthScreen() {
               </View>
             ) : null}
             {profile?.birthDate && profile?.mode === 'baby' && chartData?.datasets?.length > 1 ? (
-              <Text style={styles.percentileHint}>
-                P50 = 同年齡兒童的中位數 ｜ P3 / P97 = 正常範圍（3% ~ 97%）
-              </Text>
+              <React.Fragment>
+                <Text style={styles.percentileHint}>
+                  P50 = 同年齡兒童的中位數 ｜ P3 / P97 = 正常範圍（3% ~ 97%）
+                </Text>
+                <SourceCitation source={GROWTH_SOURCE} />
+              </React.Fragment>
             ) : null}
           </View>
         ) : showChart && !chartData ? (
@@ -242,6 +250,7 @@ export default function GrowthScreen() {
         {!showChart && (
           <>
             <Text style={styles.sectionTitle}>記錄列表</Text>
+            <SourceCitation source={GROWTH_SOURCE} />
             {records.length === 0 ? (
               <View style={styles.emptyCard}>
                 <Ionicons name="trending-up-outline" size={48} color="#DDD" />
@@ -285,6 +294,7 @@ export default function GrowthScreen() {
       </ScrollView>
 
       <AdBanner />
+      {showInterstitial ? <AdInterstitial /> : null}
 
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

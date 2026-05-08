@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import checkupsData, { calculatePregnancyWeek, getCheckupsByWeek } from '../data/prenatalCheckups';
+import checkupsData, { calculatePregnancyWeek, getCheckupsByWeek, CHECKUP_SOURCE } from '../data/prenatalCheckups';
 import {
   getUserProfile, saveCompletedCheckups, getCompletedCheckups,
   saveCheckupReminders, getCheckupReminders, getNotificationSettings,
@@ -12,6 +12,7 @@ import {
 } from '../storage/settings';
 import { checkAndRequestPermission, scheduleNotificationAtDate, cancelNotification } from '../utils/notifications';
 import AdBanner from '../components/AdBanner';
+import SourceCitation from '../components/SourceCitation';
 import AdInterstitial from '../components/AdInterstitial';
 
 export default function PregnancyScreen() {
@@ -425,6 +426,8 @@ export default function PregnancyScreen() {
               <Ionicons name="add-circle-outline" size={20} color="#FF6B8A" />
               <Text style={styles.addCustomBtnText}>添加自訂提醒</Text>
             </TouchableOpacity>
+
+            <SourceCitation source={CHECKUP_SOURCE} />
           </>
         ) : (
           <View style={styles.emptyCard}>

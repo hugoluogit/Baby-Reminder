@@ -1,5 +1,10 @@
 // 產檢時間表數據（香港衞生署）
 
+export const CHECKUP_SOURCE = {
+  name: '香港衞生署 - 產前檢查指南',
+  url: 'https://www.fhs.gov.hk/tc_chi/health_info/woman/30189.html',
+};
+
 const checkups = [
   {
     id: 'p001',

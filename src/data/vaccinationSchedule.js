@@ -1,5 +1,10 @@
 // 疫苗時間表數據（香港衞生署）
 
+export const VACCINE_SOURCE = {
+  name: '香港衞生署 - 兒童免疫接種計劃',
+  url: 'https://www.fhs.gov.hk/tc_chi/health_info/child/14828.html',
+};
+
 const vaccines = [
   {
     id: 'v001',
