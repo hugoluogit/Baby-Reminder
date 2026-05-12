@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AD_UNITS } from '../config/ads';
 
 let BannerAd = null;
 let BannerAdSize = null;
@@ -17,8 +18,23 @@ try {
   // Native module not available (Expo Go)
 }
 
+function useBannerAd() {
+  if (!nativeModuleAvailable) return null;
+  return (
+    <BannerAd
+      unitId={AD_UNITS.BANNER}
+      size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+      requestOptions={{
+        requestNonPersonalizedAdsOnly: true,
+      }}
+    />
+  );
+}
+
 export default function AdBanner() {
-  if (!nativeModuleAvailable) {
+  const ad = useBannerAd();
+
+  if (!ad) {
     return (
       <View style={styles.placeholder}>
         <Ionicons name="megaphone-outline" size={14} color="#CCC" />
@@ -27,17 +43,7 @@ export default function AdBanner() {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <BannerAd
-        unitId={TestIds.BANNER}
-        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
-      />
-    </View>
-  );
+  return <View style={styles.container}>{ad}</View>;
 }
 
 const styles = StyleSheet.create({

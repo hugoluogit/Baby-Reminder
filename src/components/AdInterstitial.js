@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AD_UNITS } from '../config/ads';
 
 let InterstitialAd = null;
 let AdEventType = null;
@@ -21,7 +22,7 @@ export default function AdInterstitial() {
   useEffect(() => {
     if (!nativeModuleAvailable) return;
 
-    const interstitial = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+    const interstitial = InterstitialAd.createForAdRequest(AD_UNITS.INTERSTITIAL, {
       requestNonPersonalizedAdsOnly: true,
     });
 

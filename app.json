@@ -2,7 +2,7 @@
   "expo": {
     "name": "港嬰寶",
     "slug": "baby-steps",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -23,7 +23,7 @@
         "NSPhotoLibraryUsageDescription": "寶寶記錄需要存取您的照片，讓您可以為媽媽和寶寶設定個人頭像，並在成長記錄中加入照片，使紀錄更豐富。"
       },
       "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
+        "googleMobileAdsAppId": "ca-app-pub-1448861287868925~2196989351"
       }
     },
     "android": {
