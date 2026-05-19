@@ -125,13 +125,6 @@ export default function KnowledgeScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color="#CCC" />
             </TouchableOpacity>
-            {/* 原生廣告：在文章列表中間顯示（第2篇和第5篇之後） */}
-            {(index === 2 || index === 4) && (
-              <View style={styles.nativeAd}>
-                <Ionicons name="megaphone-outline" size={16} color="#999" />
-                <Text style={styles.nativeAdText}>廣告位</Text>
-              </View>
-            )}
           </React.Fragment>
         ))}
       </ScrollView>
@@ -211,16 +204,6 @@ const styles = StyleSheet.create({
   articleTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
   articleSummary: { fontSize: 13, color: '#888', marginTop: 4, lineHeight: 18 },
   articleCategory: { fontSize: 12, color: '#FF6B8A', marginTop: 6 },
-  nativeAd: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    marginBottom: 10,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
-  },
-  nativeAdText: { fontSize: 12, color: '#999', marginLeft: 4 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: {
